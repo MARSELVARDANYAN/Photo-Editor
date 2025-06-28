@@ -189,11 +189,11 @@ export const AuthProvider = ({ children }) => {
     import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   const loginWithGoogle = () => {
-    window.location.href = `${apiBaseUrl}/api/auth/google`;
+    window.location.href = `${apiBaseUrl}/auth/google`;
   };
 
   const loginWithFacebook = () => {
-    window.location.href = `${apiBaseUrl}/api/auth/facebook`;
+    window.location.href = `${apiBaseUrl}/auth/facebook`;
   };
 
   const logout = (redirect = true) => {
