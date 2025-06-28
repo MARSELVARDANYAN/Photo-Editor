@@ -99,7 +99,8 @@
 
 // client/src/context/AuthContext.jsx
 // client/src/context/AuthContext.jsx
-import { createContext, useState, useEffect, useContext } from "react";
+// src/context/AuthContext.jsx
+import { createContext, useState, useEffect, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api.js";
 
@@ -111,7 +112,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const validateToken = async (t) => {
+  // Проверка валидности токена
+  const validateToken = useCallback(async (t) => {
     if (!t) return false;
 
     try {
@@ -123,12 +125,29 @@ export const AuthProvider = ({ children }) => {
       console.error("Token validation failed:", err);
       return false;
     }
-  };
+  }, []);
 
+  // Загрузка данных пользователя
+  const fetchUser = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const res = await api.get("/auth/me", {
+        headers: { "x-auth-token": token },
+      });
+      setUser(res.data);
+    } catch (err) {
+      console.error("Failed to fetch user:", err);
+      logout(false);
+    }
+  }, [token]);
+
+  // Инициализация аутентификации
   useEffect(() => {
     const initAuth = async () => {
       setLoading(true);
 
+      // Проверка токена в URL (для OAuth редиректа)
       const queryParams = new URLSearchParams(window.location.search);
       const urlToken = queryParams.get("token");
 
@@ -138,33 +157,22 @@ export const AuthProvider = ({ children }) => {
         window.history.replaceState({}, "", window.location.pathname);
       }
 
+      // Проверка валидности токена
       const currentToken = urlToken || token;
-
-      if (currentToken) {
-        try {
-          api.defaults.headers.common["x-auth-token"] = currentToken;
-
-          const isValid = await validateToken(currentToken);
-          if (isValid) {
-            const res = await api.get("/auth/me", {
-              headers: { "x-auth-token": currentToken },
-            });
-            setUser(res.data);
-          } else {
-            logout(false);
-          }
-        } catch (err) {
-          console.error("Auth initialization error:", err);
-          logout(false);
-        }
+      if (currentToken && (await validateToken(currentToken))) {
+        api.defaults.headers.common["x-auth-token"] = currentToken;
+        await fetchUser();
+      } else {
+        logout(false);
       }
 
       setLoading(false);
     };
 
     initAuth();
-  }, [token]);
+  }, [token, validateToken, fetchUser]);
 
+  // Установка заголовка токена при изменении
   useEffect(() => {
     if (token) {
       api.defaults.headers.common["x-auth-token"] = token;
@@ -175,32 +183,43 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
+  // Регистрация
   const register = async (username, password) => {
     const { data } = await api.post("/auth/register", { username, password });
     setToken(data.token);
+    await fetchUser();
+    navigate("/");
   };
 
+  // Логин
   const login = async (username, password) => {
     const { data } = await api.post("/auth/login", { username, password });
     setToken(data.token);
+    await fetchUser();
+    navigate("/");
   };
 
-  const apiBaseUrl =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
-  const loginWithGoogle = () => {
-    window.location.href = `${apiBaseUrl}/auth/google`;
+  // Вход через Google
+  const loginWithGoogle = (returnTo = "/") => {
+    window.location.href = `${api.defaults.baseURL}/auth/google?returnTo=${encodeURIComponent(returnTo)}`;
   };
 
-  const loginWithFacebook = () => {
-    window.location.href = `${apiBaseUrl}/auth/facebook`;
+  // Вход через Facebook
+  const loginWithFacebook = (returnTo = "/") => {
+    window.location.href = `${api.defaults.baseURL}/auth/facebook?returnTo=${encodeURIComponent(returnTo)}`;
   };
 
+  // Выход
   const logout = (redirect = true) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem("token");
     if (redirect) navigate("/login");
+  };
+
+  // Установка токена (для OAuth редиректа)
+  const setAuthToken = (newToken) => {
+    setToken(newToken);
   };
 
   return (
@@ -214,6 +233,7 @@ export const AuthProvider = ({ children }) => {
         loginWithGoogle,
         loginWithFacebook,
         logout,
+        setAuthToken,
       }}
     >
       {children}

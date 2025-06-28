@@ -1,6 +1,7 @@
+// src/components/Auth.jsx
 import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import AuthContext from "../context/AuthContext.jsx";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   Box,
   Typography,
@@ -27,7 +28,6 @@ import {
   Facebook,
 } from "@mui/icons-material";
 import { keyframes } from "@emotion/react";
-import { useAuth } from "../context/AuthContext"; //poxac
 
 const gradientAnimation = keyframes`
   0% { background-position: 0% 50%; }
@@ -107,12 +107,11 @@ const Auth = () => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const { loginWithGoogle, loginWithFacebook } = useContext(AuthContext); //poxac
-
-  const { register, login } = useContext(AuthContext);
+  
+  const { register, login, loginWithGoogle, loginWithFacebook } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,7 +121,9 @@ const Auth = () => {
       } else {
         await register(username, password);
       }
-      navigate("/");
+      // Перенаправление на предыдущую страницу или на главную
+      const from = location.state?.from?.pathname || "/";
+      navigate(from);
     } catch (err) {
       setError(err.response?.data?.message || "Authentication failed");
     }
@@ -135,6 +136,12 @@ const Auth = () => {
       setError("");
       setIsAnimating(false);
     }, 300);
+  };
+
+  const handleSocialLogin = (provider) => {
+    // Сохраняем текущее местоположение для возврата после авторизации
+    const returnTo = location.pathname + location.search;
+    provider(returnTo);
   };
 
   return (
@@ -273,7 +280,7 @@ const Auth = () => {
             <Button
               variant="contained"
               fullWidth
-              onClick={loginWithGoogle}
+              onClick={() => handleSocialLogin(loginWithGoogle)}
               startIcon={<Google />}
               sx={{
                 mb: 2,
@@ -287,7 +294,7 @@ const Auth = () => {
             <Button
               variant="contained"
               fullWidth
-              onClick={loginWithFacebook}
+              onClick={() => handleSocialLogin(loginWithFacebook)}
               startIcon={<Facebook />}
               sx={{
                 bgcolor: "#4267B2",
