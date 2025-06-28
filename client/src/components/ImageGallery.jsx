@@ -330,7 +330,7 @@ const ImageGallery = () => {
           </Box>
 
           <PhotoEditor
-            imageUrl={`http://localhost:5000/api/images/${editingImage._id}`}
+            imageUrl={`https://photo-editor-1.onrender.com/api/images/${editingImage._id}`}
             onSave={handleSaveEdited}
           />
         </motion.div>
