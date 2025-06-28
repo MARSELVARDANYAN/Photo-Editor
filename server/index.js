@@ -46,7 +46,7 @@ app.use((req, res, next) => {
     "script-src 'self' 'unsafe-inline'; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " + // Разрешаем inline-стили
     "font-src 'self' https://fonts.gstatic.com; " +
-    "img-src 'self' data: blob:; " +
+    "img-src 'self' data: blob: https://images.unsplash.com; " +
     "connect-src *"
   );
   next();
