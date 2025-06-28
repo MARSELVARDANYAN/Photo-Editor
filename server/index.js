@@ -43,35 +43,29 @@ app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "font-src 'self' https://fonts.gstatic.com; " +
-    "img-src 'self' data: blob:; " +
-    "connect-src *"
+    "script-src 'self' 'unsafe-inline' https://apis.google.com; " +
+    "connect-src 'self' https://*.onrender.com https://api.facebook.com; " +
+    "frame-src 'self' https://accounts.google.com https://www.facebook.com;"
   );
   next();
 });
 
+
 // ✅ CORS
 app.use(cors({
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'https://photo-editor-1.onrender.com' // ← прод фронтенд
-    ];
-
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    'http://localhost:5173',
+    'https://photo-editor-1.onrender.com'
+  ],
   credentials: true,
-  exposedHeaders: ['x-auth-token', 'Content-Type']
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 
 app.use(express.json());
+app.set('trust proxy', 1);
 
 // ✅ Passport
 import initializePassport from './config/passport.js';

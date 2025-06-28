@@ -26,6 +26,7 @@ export default function initializePassport() {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: "/api/auth/google/callback",
+      proxy: true,
       scope: ['profile', 'email']
     }, async (accessToken, refreshToken, profile, done) => {
       try {
@@ -58,6 +59,7 @@ export default function initializePassport() {
       clientID: process.env.FACEBOOK_APP_ID,
       clientSecret: process.env.FACEBOOK_APP_SECRET,
       callbackURL: "/api/auth/facebook/callback",
+      proxy: true,
       profileFields: ['id', 'emails', 'name', 'picture.type(large)']
     }, async (accessToken, refreshToken, profile, done) => {
       try {
