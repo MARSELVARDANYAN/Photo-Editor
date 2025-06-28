@@ -54,10 +54,22 @@ app.use((req, res, next) => {
 
 // ✅ CORS
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'https://photo-editor-1.onrender.com' // ← прод фронтенд
+    ];
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   exposedHeaders: ['x-auth-token', 'Content-Type']
 }));
+
 
 app.use(express.json());
 
