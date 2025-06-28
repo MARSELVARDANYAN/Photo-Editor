@@ -54,20 +54,9 @@ app.use((req, res, next) => {
 
 // ✅ CORS
 app.use(cors({
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'https://photo-editor-wmly.onrender.com', // ← твой frontend домен Render
-    ];
-
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`Not allowed by CORS: ${origin}`));
-    }
-  },
+  origin: 'http://localhost:5173',
   credentials: true,
-  exposedHeaders: ['x-auth-token', 'x-refreshed-token', 'Content-Type']
+  exposedHeaders: ['x-auth-token', 'Content-Type']
 }));
 
 app.use(express.json());
