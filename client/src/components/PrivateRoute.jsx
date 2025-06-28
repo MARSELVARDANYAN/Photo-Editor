@@ -2,6 +2,7 @@
 import { useContext } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import  AuthContext  from '../context/AuthContext';
+import { Box, CircularProgress } from '@mui/material';
 
 const PrivateRoute = () => {
   const { user, loading, authChecked } = useContext(AuthContext);
