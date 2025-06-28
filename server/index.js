@@ -38,47 +38,46 @@ dotenv.config();
 
 const app = express();
 
-// CSP
+// ✅ Content Security Policy
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self';" +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
-    "style-src 'self' 'unsafe-inline' fonts.googleapis.com;" +
-    "font-src 'self' fonts.gstatic.com;" +
-    "img-src 'self' data: blob:;" +
-    "connect-src 'self' http://localhost:5000"
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data: blob:; " +
+    "connect-src *"
   );
   next();
 });
 
-// Middlewares
+// ✅ CORS
 app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = [
       'http://localhost:5173',
-      'https://photo-editor-2.onrender.com' // ← Вставь сюда имя фронтенда на Render
+      'https://photo-editor-2.onrender.com', // ← твой frontend домен Render
     ];
-    
+
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error(`Not allowed by CORS: ${origin}`));
     }
   },
   credentials: true,
   exposedHeaders: ['x-auth-token', 'x-refreshed-token', 'Content-Type']
 }));
 
-
 app.use(express.json());
 
-// Passport
+// ✅ Passport
 import initializePassport from './config/passport.js';
 const passport = initializePassport();
 app.use(passport.initialize());
 
-// Routes
+// ✅ Routes
 import authRouter from './routes/auth.js';
 import imagesRouter from './routes/images.js';
 import albumsRouter from './routes/albums.js';
@@ -89,7 +88,6 @@ app.use('/api/images', imagesRouter);
 app.use('/api/albums', albumsRouter);
 app.use('/api/generate', generateRouter);
 
-// Static files
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -99,17 +97,15 @@ app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
-
-// Start server
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
     await connectDB();
 
-    const server = app.listen(PORT, () =>
-      console.log(`🚀 Server running on port ${PORT}`)
-    );
+    const server = app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
 
     process.on('SIGINT', async () => {
       console.log('\n⛔ SIGINT received. Closing server...');
