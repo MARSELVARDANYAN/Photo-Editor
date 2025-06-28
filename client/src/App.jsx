@@ -48,12 +48,14 @@ function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Auth />} />
-
+            
+            {/* Добавляем новый маршрут для обработки OAuth перенаправлений */}
             <Route path="/oauth-redirect" element={<OAuthRedirect />} />
 
             {/* PrivateRoute */}
             <Route element={<PrivateRoute />}>
               <Route path="/" element={<MainLayout />} />
+              {/* Добавьте другие защищенные маршруты здесь */}
             </Route>
 
             {/* 404 */}

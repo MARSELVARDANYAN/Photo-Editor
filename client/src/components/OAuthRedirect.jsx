@@ -1,56 +1,71 @@
 // src/components/OAuthRedirect.jsx
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // Предполагается, что у вас есть AuthContext
+import { useAuth } from '../context/AuthContext.jsx';
+import { Box, CircularProgress, Typography } from '@mui/material';
 
 const OAuthRedirect = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuth(); // Получаем функцию login из контекста
+  const { setAuthToken } = useAuth();
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    const error = searchParams.get('error');
-    const state = searchParams.get('state') || '/';
-
-    console.log('OAuthRedirect params:', { token, error, state });
-
-    if (error) {
-      console.error('OAuth Error:', error);
-      navigate(`/login?error=${encodeURIComponent(error)}`);
-      return;
-    }
-
-    if (token) {
-      try {
-        // Сохраняем токен через контекст аутентификации
-        login(token);
-        
-        // Перенаправляем на указанную страницу
-        navigate(state);
-      } catch (e) {
-        console.error('Token processing error:', e);
-        navigate(`/login?error=${encodeURIComponent('token_processing_error')}`);
+    const processAuth = async () => {
+      const token = searchParams.get('token');
+      const state = searchParams.get('state') || '/';
+      
+      if (!token) {
+        setError('Authentication token not found');
+        return;
       }
-    } else {
-      console.error('Token not found in OAuth redirect');
-      navigate('/login?error=token_not_found');
-    }
-  }, [searchParams, navigate, login]);
+
+      try {
+        const isValid = await setAuthToken(token);
+        if (isValid) {
+          navigate(state);
+        } else {
+          setError('Invalid authentication token');
+        }
+      } catch (err) {
+        console.error('Authentication failed:', err);
+        setError('Authentication failed. Please try again.');
+      }
+    };
+
+    processAuth();
+  }, [searchParams, navigate, setAuthToken]);
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <Typography variant="h5" color="error" gutterBottom>
+          Authentication Error
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 3 }}>
+          {error}
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={() => navigate('/login')}
+        >
+          Go to Login
+        </Button>
+      </Box>
+    );
+  }
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      flexDirection: 'column'
-    }}>
-      <div className="spinner-border text-primary" role="status">
-        <span className="visually-hidden">Loading...</span>
-      </div>
-      <p className="mt-3">Завершаем авторизацию...</p>
-    </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <CircularProgress size={60} thickness={4} sx={{ mb: 3 }} />
+      <Typography variant="h6" gutterBottom>
+        Completing authentication...
+      </Typography>
+      <Typography variant="body2" color="textSecondary">
+        Please wait while we set up your account
+      </Typography>
+    </Box>
   );
 };
 
