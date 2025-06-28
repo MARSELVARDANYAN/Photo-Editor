@@ -57,7 +57,7 @@ app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = [
       'http://localhost:5173',
-      'https://photo-editor-1.onrender.com' // ← Вставь сюда имя фронтенда на Render
+      'https://photo-editor-2.onrender.com' // ← Вставь сюда имя фронтенда на Render
     ];
     
     if (!origin || allowedOrigins.includes(origin)) {
