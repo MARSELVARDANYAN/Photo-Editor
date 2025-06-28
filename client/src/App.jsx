@@ -10,6 +10,7 @@ import PrivateRoute from "./components/PrivateRoute.jsx";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import MainLayout from "./components/MainLayout.jsx";
+import OAuthRedirect from "./components/OAuthRedirect.jsx";
 
 const theme = createTheme({
   palette: {
@@ -47,6 +48,8 @@ function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Auth />} />
+
+            <Route path="/oauth-redirect" element={<OAuthRedirect />} />
 
             {/* PrivateRoute */}
             <Route element={<PrivateRoute />}>
