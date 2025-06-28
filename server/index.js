@@ -43,11 +43,14 @@ app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline'; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " + // Разрешаем inline-стили
+    "script-src 'self' 'unsafe-inline' https://apis.google.com https://connect.facebook.net; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
-    "img-src 'self' data: blob: https://images.unsplash.com; " +
-    "connect-src *"
+    "img-src 'self' data: blob: https://images.unsplash.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://platform-lookaside.fbsbx.com; " +
+    "connect-src 'self' https://your-api-domain.com https://graph.facebook.com; " +
+    "frame-src https://accounts.google.com https://www.facebook.com; " +
+    "object-src 'none'; " +
+    "base-uri 'self';"
   );
   next();
 });
