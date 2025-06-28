@@ -35,14 +35,27 @@ router.post("/register", register);
 router.post("/login", login);
 router.get("/logout", auth, logout);
 
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+router.get("/google", (req, res, next) => {
+  const state = req.query.redirect || '/';
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    prompt: "select_account",
+    accessType: "offline",
+    state: state 
+  })(req, res, next);
+});
+
+
 router.get("/google/callback", 
   passport.authenticate("google", { session: false }),
   (req, res) => {
     const token = generateToken(req.user);
-  res.redirect(`${process.env.CLIENT_URL}/oauth-redirect?token=${encodeURIComponent(token)}`);
+    const state = req.query.state ? decodeURIComponent(req.query.state) : '/';
+    res.redirect(`${process.env.CLIENT_URL}/oauth-redirect?token=${encodeURIComponent(token)}&state=${encodeURIComponent(state)}`);
   }
 );
+
+
 
 router.get("/facebook", passport.authenticate("facebook", { scope: ["email"] }));
 router.get("/facebook/callback", 
