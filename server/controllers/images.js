@@ -34,9 +34,12 @@ export const getImage = async (req, res) => {
     const image = await Image.findById(req.params.id);
     if (!image) return res.status(404).json({ message: 'Image not found' });
 
+    // Используйте переменную окружения для клиентского URL
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    
     res.set({
       'Content-Type': image.contentType,
-      'Access-Control-Allow-Origin': 'http://localhost:5173',
+      'Access-Control-Allow-Origin': clientUrl,
       'Access-Control-Expose-Headers': 'Content-Type',
       'Cross-Origin-Resource-Policy': 'cross-origin'
     });

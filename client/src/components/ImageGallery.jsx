@@ -39,7 +39,7 @@ const ImageGallery = () => {
   const [successMessage, setSuccessMessage] = useState(null);
   const [imageBlobs, setImageBlobs] = useState({});
   const [showUploader, setShowUploader] = useState(false);
-  const [uploaderTab, setUploaderTab] = useState(0); 
+  const [uploaderTab, setUploaderTab] = useState(0);
   const { user } = useAuth(); //poxac
 
   console.log(motion);
@@ -122,7 +122,17 @@ const ImageGallery = () => {
 
   const handleSaveEdited = async (dataUrl) => {
     try {
-      const blob = await fetch(dataUrl).then((res) => res.blob());
+      // Преобразование Data URL в Blob
+      const byteString = atob(dataUrl.split(",")[1]);
+      const mimeString = dataUrl.split(",")[0].split(":")[1].split(";")[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+
+      const blob = new Blob([ab], { type: mimeString });
 
       const formData = new FormData();
       formData.append("image", blob, `edited-${editingImage._id}.jpg`);
@@ -134,7 +144,6 @@ const ImageGallery = () => {
       const res = await api.get("/images");
       setImages(res.data);
       setEditingImage(null);
-
       setSuccessMessage("Image successfully saved");
     } catch (err) {
       console.error("Error saving edited image:", err);
@@ -202,7 +211,9 @@ const ImageGallery = () => {
     setShowUploader(false);
   };
 
-  {/*poxac stexic sksac*/}
+  {
+    /*poxac stexic sksac*/
+  }
   if (!user) {
     return (
       <Box
@@ -224,35 +235,11 @@ const ImageGallery = () => {
       </Box>
     );
   }
-  {/*poxac minchev stex*/}
+  {
+    /*poxac minchev stex*/
+  }
   return (
     <Box sx={{ p: 3 }}>
-      {/* <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4" component="h2" sx={{ fontWeight: 700, color: "#2196F3" }}>
-          YOUR GALLERY
-        </Typography>
-        
-        {!editingImage && (
-          <Button
-            variant="contained"
-            startIcon={<CloudUpload />}
-            onClick={() => setShowUploader(!showUploader)}
-            sx={{
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-            }}
-          >
-            {showUploader ? "HIDE UPLOADER" : "UPLOAD IMAGE"}
-          </Button>
-        )}
-      </Box> */}
-      {/*poxac  stexic*/}
       <Box
         sx={{
           display: "flex",
@@ -269,7 +256,6 @@ const ImageGallery = () => {
           >
             YOUR GALLERY
           </Typography>
-          
         </Box>
 
         <Box sx={{ display: "flex", gap: 2 }}>
@@ -330,7 +316,9 @@ const ImageGallery = () => {
           </Box>
 
           <PhotoEditor
-            imageUrl={`https://photo-editor-1.onrender.com/api/images/${editingImage._id}`}
+            imageUrl={`${import.meta.env.VITE_API_BASE_URL}/api/images/${
+              editingImage._id
+            }`}
             onSave={handleSaveEdited}
           />
         </motion.div>
