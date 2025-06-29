@@ -20,7 +20,7 @@ const TextToImage = ({ onImageReady }) => {
     setErrorMsg("");
 
     try {
-      const res = await api.post("/generate", { prompt });
+      const res = await api.post("/kandinsky-generate", { prompt });
       onImageReady(res.data.imageUrl);
     } catch (err) {
       console.error(err);
@@ -68,7 +68,11 @@ const TextToImage = ({ onImageReady }) => {
         disabled={loading}
         size="large"
       >
-        {loading ? <CircularProgress size={24} color="inherit" /> : "Generate Image"}
+        {loading ? (
+          <CircularProgress size={24} color="inherit" />
+        ) : (
+          "Generate Image"
+        )}
       </Button>
     </Box>
   );
