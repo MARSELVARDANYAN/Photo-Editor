@@ -106,17 +106,11 @@ app.use('/api/auth', authRouter);
 app.use('/api/images', imagesRouter);
 app.use('/api/albums', albumsRouter);
 app.use('/api/generate', kandinskyRouter);
-app.use('/api/kandinsky', kandinskyRouter);
 
-app.get('/api/check-token', async (req, res) => {
-  try {
-    const test = await axios.head('https://huggingface.co/api/whoami', {
-      headers: { Authorization: `Bearer ${process.env.HF_API_KEY}` }
-    });
-    res.json({ valid: true, details: test.headers });
-  } catch (err) {
-    res.status(401).json({ valid: false, error: err.message });
-  }
+
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
 });
 
 const __filename = fileURLToPath(import.meta.url);

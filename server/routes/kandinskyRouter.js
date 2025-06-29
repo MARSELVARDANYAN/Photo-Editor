@@ -3,7 +3,8 @@ import generateImage from './kandinskyGenerator.js';
 
 const router = express.Router();
 
-router.post('/generate', async (req, res) => {
+// Измените на router.post('/', ...) 
+router.post('/', async (req, res) => {
   const { prompt } = req.body;
 
   if (!prompt) {
