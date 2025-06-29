@@ -3,17 +3,19 @@ import dotenv from 'dotenv';
 import sharp from 'sharp';
 
 // В начале файла kandinskyGenerator.js
+
+
+dotenv.config();
+
+const hf = new HfInference(process.env.HF_API_KEY);
+const MODEL_NAME = "kandinsky-community/kandinsky-2-2-decoder";
+
 await hf.textToImage({
   model: MODEL_NAME,
   inputs: "",
   parameters: { num_inference_steps: 1 }
 });
 console.log("Model warmed up");
-
-dotenv.config();
-
-const hf = new HfInference(process.env.HF_API_KEY);
-const MODEL_NAME = "kandinsky-community/kandinsky-2-2-decoder";
 
 export default async function generateKandinskyImage(prompt) {
   try {
