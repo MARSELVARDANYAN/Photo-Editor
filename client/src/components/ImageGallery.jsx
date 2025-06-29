@@ -316,7 +316,7 @@ const ImageGallery = () => {
           </Box>
 
           <PhotoEditor
-            imageUrl={`${import.meta.env.VITE_API_BASE_URL}/api/images/${
+            imageUrl={`${import.meta.env.VITE_API_BASE_URL}/images/${
               editingImage._id
             }`}
             onSave={handleSaveEdited}
