@@ -1,10 +1,9 @@
 import express from 'express';
-import generateKandinskyImage from './kandinskyGenerator.js';
+import generateImage from './kandinskyGenerator.js';
 
 const router = express.Router();
 
-// Измените путь с '/' на '/generate'
-router.post('/', async (req, res) => {  // <-- ИЗМЕНИТЕ ЭТУ СТРОКУ
+router.post('/generate', async (req, res) => {
   const { prompt } = req.body;
 
   if (!prompt) {
@@ -12,24 +11,18 @@ router.post('/', async (req, res) => {  // <-- ИЗМЕНИТЕ ЭТУ СТРО�
   }
 
   try {
-    console.log('🟢 Generating Kandinsky image for:', prompt);
-    const startTime = Date.now();
+    console.log('🟢 Generating image for:', prompt);
+    const result = await generateImage(prompt);
     
-    const result = await generateKandinskyImage(prompt);
-    
-    if (!result.success) {
-      return res.status(500).json({ message: result.message });
+    if (result.success) {
+      res.json({ imageUrl: result.image });
+    } else {
+      res.status(500).json({ message: result.message });
     }
-
-    console.log(`✅ Image generated in ${Date.now() - startTime}ms`);
-    res.json({ imageUrl: result.image });
     
   } catch (err) {
-    console.error('❌ Kandinsky processing error:', err);
-    res.status(500).json({ 
-      message: 'Image generation failed',
-      error: err.message 
-    });
+    console.error('❌ Processing error:', err);
+    res.status(500).json({ message: 'Image generation failed' });
   }
 });
 
