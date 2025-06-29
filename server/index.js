@@ -98,11 +98,14 @@ import authRouter from './routes/auth.js';
 import imagesRouter from './routes/images.js';
 import albumsRouter from './routes/albums.js';
 import generateRouter from './routes/generate.js';
+import kandinskyRouter from './routes/kandinskyRouter.js';
+
 
 app.use('/api/auth', authRouter);
 app.use('/api/images', imagesRouter);
 app.use('/api/albums', albumsRouter);
 app.use('/api/generate', generateRouter);
+app.use('/api/kandinsky', kandinskyRouter);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

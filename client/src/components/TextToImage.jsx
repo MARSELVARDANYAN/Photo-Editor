@@ -20,7 +20,7 @@ const TextToImage = ({ onImageReady }) => {
     setErrorMsg("");
 
     try {
-      const res = await api.post("/kandinsky-generate", { prompt });
+      const res = await api.post("/generate", { prompt });
       onImageReady(res.data.imageUrl);
     } catch (err) {
       console.error(err);
