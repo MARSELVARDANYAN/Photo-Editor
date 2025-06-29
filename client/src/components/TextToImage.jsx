@@ -20,7 +20,13 @@ const TextToImage = ({ onImageReady }) => {
     setErrorMsg("");
 
     try {
-      const res = await api.post("/generate", { prompt });
+      const res = await api.post(
+        "/generate",
+        { prompt },
+        {
+          params: { _t: Date.now() },
+        }
+      );
       onImageReady(res.data.imageUrl);
     } catch (err) {
       console.error(err);

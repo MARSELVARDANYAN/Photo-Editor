@@ -4,44 +4,70 @@ import sharp from 'sharp';
 
 dotenv.config();
 
+// Конфигурация для нового токена
+const HF_API_KEY = process.env.HF_API_KEY || "ваш_новый_бесплатный_токен";
 const MODEL_NAME = "kandinsky-community/kandinsky-3";
 const HF_API_URL = `https://api-inference.huggingface.co/models/${MODEL_NAME}`;
 
+// Глобальный флаг для отслеживания прогрева модели
+let isModelWarmedUp = false;
+
 export default async function generateKandinskyImage(prompt) {
   try {
+    // 🔥 Прогрев модели с кешированием
+    if (!modelWarmupCache.has('warmedUp')) {
+      console.log('⏳ Warming up model...');
+      try {
+        await axios.post(HF_API_URL, {
+          inputs: "warmup",
+          parameters: { 
+            num_inference_steps: 1,
+            height: 64,
+            width: 64 
+          },
+          options: { wait_for_model: true }
+        }, {
+          headers: { Authorization: `Bearer ${HF_API_KEY}` },
+          timeout: 30000
+        });
+        console.log('✅ Model is awake');
+        modelWarmupCache.set('warmedUp', true);
+      } catch (warmupError) {
+        console.warn('⚠️ Model warmup failed:', warmupError.message);
+      }
+    }
+
+    // Параметры генерации
     const payload = {
       inputs: prompt,
       parameters: {
-        negative_prompt: "low quality, deformed, blurry, text, watermark, signature, cropped",
-        num_inference_steps: 50, // Увеличено для лучшего качества
+        negative_prompt: "low quality, deformed, blurry, text, watermark",
+        num_inference_steps: 30,
         guidance_scale: 7.5,
-        height: 1024, // Kandinsky 3 поддерживает высокое разрешение
-        width: 1024,
-        prior_guidance_scale: 4.0, // Специфичный параметр для Kandinsky 3
-        prior_num_inference_steps: 25
+        height: 1024,
+        width: 1024
       },
       options: {
-        wait_for_model: true, // Важно для больших моделей
-        use_cache: true,
+        wait_for_model: true
       }
     };
 
-    console.log(`🟡 Sending request to Hugging Face for ${MODEL_NAME}...`);
+    console.log(`🟡 Generating image for: "${prompt}"`);
     
     const response = await axios.post(HF_API_URL, payload, {
       headers: {
-        Authorization: `Bearer ${process.env.HF_API_KEY}`,
+        Authorization: `Bearer ${HF_API_KEY}`,
         Accept: 'image/png',
       },
       responseType: 'arraybuffer',
-      timeout: 180000, // 3 минуты - генерация может быть долгой
+      timeout: 120000, // 120 секунд
     });
 
-    console.log('🟢 Received image from Hugging Face');
+    console.log('🟢 Image received');
 
     // Оптимизация изображения
     const optimizedImage = await sharp(response.data)
-      .jpeg({ quality: 90, progressive: true }) // Сохраняем оригинальный размер 1024x1024
+      .jpeg({ quality: 90 })
       .toBuffer();
 
     return {
@@ -50,47 +76,28 @@ export default async function generateKandinskyImage(prompt) {
     };
     
   } catch (error) {
-    console.error('❌ Kandinsky 3 generation error:', error);
+    console.error('❌ Generation error:', error);
     
     let errorMessage = 'Failed to generate image';
-    let errorDetails = '';
     
+    // Обработка специфичных ошибок Hugging Face
     if (error.response) {
       const status = error.response.status;
-      errorDetails = `Status: ${status}`;
       
-      if (status === 429) {
-        errorMessage = 'Too many requests. Please try again later.';
+      if (status === 401) {
+        errorMessage = 'Invalid API token. Please check your HF_API_KEY.';
+      } else if (status === 429) {
+        errorMessage = 'Free quota exceeded. Try again later or use a different account.';
       } else if (status === 503) {
-        errorMessage = 'Model is loading. Please wait and try again.';
-        // Попробуем получить время ожидания
-        try {
-          const errorData = JSON.parse(Buffer.from(error.response.data).toString());
-          if (errorData.estimated_time) {
-            errorMessage += ` Estimated wait time: ${Math.ceil(errorData.estimated_time)} seconds.`;
-          }
-        } catch (e) {}
-      } else if (status === 400) {
-        errorMessage = 'Invalid request. Please check your prompt.';
-      } else if (status === 404) {
-        errorMessage = 'Model not found. Please check the model name.';
+        errorMessage = 'Model is loading. Please try again in 20 seconds.';
       }
       
-      // Попробуем извлечь детальную ошибку из ответа
+      // Попробуем извлечь детальное сообщение об ошибке
       try {
         const errorData = JSON.parse(Buffer.from(error.response.data).toString());
         errorMessage = errorData.error || errorData.message || errorMessage;
-        errorDetails += ` | ${JSON.stringify(errorData)}`;
-      } catch (e) {
-        errorDetails += ` | Response data: ${Buffer.from(error.response.data).toString('utf8').substring(0, 200)}`;
-      }
-    } else if (error.request) {
-      errorDetails = 'No response received from server';
-    } else {
-      errorDetails = error.message;
+      } catch (e) {}
     }
-    
-    console.error(`❌ Details: ${errorDetails}`);
     
     return {
       success: false,

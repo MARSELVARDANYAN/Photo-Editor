@@ -33,6 +33,7 @@ import connectDB from './config/db.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
+import axios from 'axios';
 
 dotenv.config();
 
@@ -104,8 +105,19 @@ import kandinskyRouter from './routes/kandinskyRouter.js';
 app.use('/api/auth', authRouter);
 app.use('/api/images', imagesRouter);
 app.use('/api/albums', albumsRouter);
-app.use('/api/generate', generateRouter);
+app.use('/api/generate', kandinskyRouter);
 app.use('/api/kandinsky', kandinskyRouter);
+
+app.get('/api/check-token', async (req, res) => {
+  try {
+    const test = await axios.head('https://huggingface.co/api/whoami', {
+      headers: { Authorization: `Bearer ${process.env.HF_API_KEY}` }
+    });
+    res.json({ valid: true, details: test.headers });
+  } catch (err) {
+    res.status(401).json({ valid: false, error: err.message });
+  }
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
